@@ -81,3 +81,16 @@ function fpp_form_print_pay()
 	}
 	return $plugin;
 }
+function fpp_activate_form_print_pay(){
+	$upload_dir = wp_upload_dir();
+	$dir = $upload_dir['basedir'] . '/form-print-pay/';
+	if(!is_dir($dir)){
+		fpp_form_print_pay()->createDirUploads($dir);
+	}
+	wp_schedule_event( time(), 'daily', 'fpp_form_print_pay' );
+}
+function fpp_deactivation_form_print_pay(){
+	wp_clear_scheduled_hook( 'fpp_form_print_pay' );
+}
+register_activation_hook(__FILE__,'fpp_activate_form_print_pay');
+register_deactivation_hook( __FILE__, 'fpp_deactivation_form_print_pay' );

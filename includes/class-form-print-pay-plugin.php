@@ -49,6 +49,20 @@ class FPP_Form_Print_Pay_plugin
 	 */
 	public $settings;
 
+	/**
+	 * @var array
+	 */
+	public $uploads;
+	/**
+	 * @var string
+	 */
+	public $uploads_dir;
+
+	/**
+	 * @var string
+	 */
+	public $uploads_url;
+
 	public function __construct($file, $version, $name)
 	{
 		$this->file = $file;
@@ -59,8 +73,12 @@ class FPP_Form_Print_Pay_plugin
 		$this->plugin_path   = trailingslashit( plugin_dir_path( $this->file ) );
 		$this->plugin_url    = trailingslashit( plugin_dir_url( $this->file ) );
 		$this->includes_path = $this->plugin_path . trailingslashit( 'includes' );
+		$this->uploads = wp_upload_dir();
+		$this->uploads_dir = $this->uploads['basedir'] . '/form-print-pay/';
+		$this->uploads_url = $this->uploads['baseurl'] . '/form-print-pay/';
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action('fpp_form_print_pay', array($this, 'fpp_update_orders_form_print_pay'));
 	}
 
 	public function form_print_run()
@@ -98,7 +116,6 @@ class FPP_Form_Print_Pay_plugin
 		require_once ($this->includes_path . 'class-form-print-pay-paypal.php');
 		require_once ($this->includes_path . 'fpdf/fpdf.php');
 		require_once ($this->includes_path . 'class-form-print-pay-pdf.php');
-		require_once ($this->includes_path . 'class-form-print-pay-cron.php');
 
 		$this->cURL = new Form_Print_Pay_Curl();
 		$this->Admin = new Form_Print_Pay_Admin();
@@ -111,7 +128,6 @@ class FPP_Form_Print_Pay_plugin
 		$this->Paypal = new Form_Print_Pay_Paypal();
 		$this->fpdf = new FPDF();
 		$this->form_fpdf = new Form_Print_Pay_PDF();
-		$this->cron = new Form_Print_Pay_Cron();
 
 	}
 
@@ -155,4 +171,36 @@ class FPP_Form_Print_Pay_plugin
 		) );
 	}
 
+	public function createDirUploads($dir)
+	{
+		mkdir($dir,0755);
+		mkdir($dir . 'img',0755);
+		mkdir($dir . 'pdfs',0755);
+	}
+
+	public function fpp_update_orders_form_print_pay()
+	{
+		$events = get_posts( array ( 'post_type' => 'fpp_form_print_pay' ) );
+
+		if ( isset($events) ) {
+
+			foreach ( $events as $event ) {
+				$custom_meta = get_post_meta($event->ID, 'fpp_form_print_pay_meta', true );
+
+				if (isset($custom_meta['pending']) && array_key_exists(0,$custom_meta['pending'])){
+					foreach ($custom_meta['pending'] as $pendiente){
+						if (isset($pendiente['transactionid'])) {
+
+							$paypal = fpp_form_print_pay()->Paypal;
+							$paypal->DoExpressCheckoutPayment($pendiente['token'],$pendiente['payerid'],true,$event->ID,$pendiente['uniquid']);
+						}
+					}
+				}else{
+					return;
+				}
+			}
+		}else{
+			return;
+		}
+	}
 }

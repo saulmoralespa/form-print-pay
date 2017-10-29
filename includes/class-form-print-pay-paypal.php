@@ -11,6 +11,7 @@ class Form_Print_Pay_Paypal
 	function __construct()
 	{
 		$this->paypal = get_option('form-print_pay_paypal');
+
 	}
 
 	function GetItemTotalPrice($item){
@@ -170,7 +171,8 @@ class Form_Print_Pay_Paypal
 			$padata .= 	'&PAYMENTREQUEST_0_AMT='.urlencode($this->GetGrandTotal($products, $charges));
 			$padata .= 	'&PAYMENTREQUEST_0_CURRENCYCODE='.urlencode($this->paypal['currency']);
 
-			//We need to execute the "DoExpressCheckoutPayment" at this point to Receive payment from user.
+
+					//We need to execute the "DoExpressCheckoutPayment" at this point to Receive payment from user.
 
 			$httpParsedResponseAr = $this->PPHttpPost('DoExpressCheckoutPayment', $padata);
 
@@ -185,64 +187,6 @@ class Form_Print_Pay_Paypal
 
 		}else{
 			die(json_encode(array('status' => false, 'message' => 'Not sessions')));
-		}
-	}
-
-	function GetTransactionDetails(){
-
-		// we can retrive transection details using either GetTransactionDetails or GetExpressCheckoutDetails
-		// GetTransactionDetails requires a Transaction ID, and GetExpressCheckoutDetails requires Token returned by SetExpressCheckOut
-
-		$padata = 	'&TOKEN='.urlencode($this->_GET('token'));
-
-		$httpParsedResponseAr = $this->PPHttpPost('GetExpressCheckoutDetails', $padata);
-
-		if("SUCCESS" == strtoupper($httpParsedResponseAr["ACK"]) || "SUCCESSWITHWARNING" == strtoupper($httpParsedResponseAr["ACK"])){
-
-			echo '<br /><b>Stuff to store in database :</b><br /><pre>';
-			/*
-			#### SAVE BUYER INFORMATION IN DATABASE ###
-			//see (http://www.sanwebe.com/2013/03/basic-php-mysqli-usage) for mysqli usage
-
-			$buyerName = $httpParsedResponseAr["FIRSTNAME"].' '.$httpParsedResponseAr["LASTNAME"];
-			$buyerEmail = $httpParsedResponseAr["EMAIL"];
-
-			//Open a new connection to the MySQL server
-			$mysqli = new mysqli('host','username','password','database_name');
-
-			//Output any connection error
-			if ($mysqli->connect_error) {
-				die('Error : ('. $mysqli->connect_errno .') '. $mysqli->connect_error);
-			}
-
-			$insert_row = $mysqli->query("INSERT INTO BuyerTable
-			(BuyerName,BuyerEmail,TransactionID,ItemName,ItemNumber, ItemAmount,ItemQTY)
-			VALUES ('$buyerName','$buyerEmail','$transactionID','$products[0]['ItemName']',$products[0]['ItemNumber'], $products[0]['ItemTotalPrice'],$ItemQTY)");
-
-			if($insert_row){
-				print 'Success! ID of last inserted record is : ' .$mysqli->insert_id .'<br />';
-			}else{
-				die('Error : ('. $mysqli->errno .') '. $mysqli->error);
-			}
-
-			*/
-
-			echo '<pre>';
-
-			print_r($httpParsedResponseAr);
-
-			echo '</pre>';
-		}
-		else  {
-
-			echo '<div style="color:red"><b>GetTransactionDetails failed:</b>'.urldecode($httpParsedResponseAr["L_LONGMESSAGE0"]).'</div>';
-
-			echo '<pre>';
-
-			print_r($httpParsedResponseAr);
-
-			echo '</pre>';
-
 		}
 	}
 
@@ -309,8 +253,11 @@ class Form_Print_Pay_Paypal
 		$title = $uniquid['nameproduct_print'];
 		$title = iconv('UTF-8', 'windows-1252', $title);
 		$textpdf = iconv('UTF-8', 'windows-1252', $textpdf);
-		$imageLogo = fpp_form_print_pay()->plugin_path . 'assets/img/logopdf.jpg';
-		$pdfFile = fpp_form_print_pay()->plugin_path . "pdfs/$id.pdf";
+
+		if (!is_dir(fpp_form_print_pay()->uploads_dir))
+		fpp_form_print_pay()->createDirUploads(fpp_form_print_pay()->uploads_dir);
+		$imageLogo = fpp_form_print_pay()->uploads_dir . 'img/logopdf.jpg';
+		$pdfFile = fpp_form_print_pay()->uploads_dir . "pdfs/$id.pdf";
 
 		$pdf = fpp_form_print_pay()->fpdf;
 		$pdf->AddPage();
@@ -342,7 +289,7 @@ class Form_Print_Pay_Paypal
 
 		$buyerEmail = $mail;
 
-		$attachments = array( fpp_form_print_pay()->plugin_path . "pdfs/$id.pdf" );
+		$attachments = array( fpp_form_print_pay()->uploads_dir . "pdfs/$id.pdf" );
 
 		$emailparams = get_option('form-print-email');
 
@@ -401,7 +348,7 @@ class Form_Print_Pay_Paypal
 
 					if ($pdf){
 
-						if ($cron === true){
+						if ($cron){
 							$meta_custom = get_post_meta($id,'fpp_form_print_pay_meta',true);
 							$metaChange = $this->seachKey($meta_custom,$uniquid);
 							update_post_meta($id,'fpp_form_print_pay_meta',$metaChange);
@@ -438,7 +385,7 @@ class Form_Print_Pay_Paypal
 
 					$array = array('status' => 'pending', 'transactionid' => $httpParsedResponseAr["PAYMENTINFO_0_TRANSACTIONID"], 'email' => $email, 'reason' => $httpParsedResponseAr["PAYMENTINFO_0_PENDINGREASON"]);
 					die(json_encode($array));
-				}elseif ('Pending' == $httpParsedResponseAr["PAYMENTINFO_0_PAYMENTSTATUS"] && $cron === true){
+				}elseif ('Pending' == $httpParsedResponseAr["PAYMENTINFO_0_PAYMENTSTATUS"] && $cron){
 					return;
 				}
 
@@ -456,9 +403,9 @@ class Form_Print_Pay_Paypal
 			if ($this->sendEmail($uniquid, $token, $email)){
 				$metaChange = $this->seachKey($meta_custom,$uniquid);
 				$meta = update_post_meta($httpParsedResponseAr,'fpp_form_print_pay_meta',$metaChange);
-				echo json_encode(array('status' => $meta, 'message' => __('Send email','form-print-pay')));
+				die(json_encode(array('status' => $meta, 'message' => __('Send email','form-print-pay'))));
 			}else{
-				echo json_encode(array('status' => false, 'message' => __('Not send email','form-print-pay')));
+				die(json_encode(array('status' => false, 'message' => __('Not send email','form-print-pay'))));
 			}
 
 		}

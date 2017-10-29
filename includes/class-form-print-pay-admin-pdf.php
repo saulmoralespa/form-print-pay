@@ -22,8 +22,8 @@ class Form_Print_Pay_Admin_PDF
 				<tr>
 					<th><?php echo __('Logo para el encabezado','form-print-pay');?></th>
 				</tr>
-				<?php if (file_exists(fpp_form_print_pay()->plugin_path . "assets/img/logopdf.jpg")){
-					echo "<tr><td>Imágen actual &nbsp;&nbsp;<img src='".fpp_form_print_pay()->plugin_url . "assets/img/logopdf.jpg'></td></tr>";
+				<?php if (file_exists(fpp_form_print_pay()->uploads_dir . "img/logopdf.jpg")){
+					echo "<tr><td>Imágen actual &nbsp;&nbsp;<img src='".fpp_form_print_pay()->uploads_url . "img/logopdf.jpg'></td></tr>";
 				}?>
                 <tr>
                     <td>

@@ -10,7 +10,24 @@ class Form_Print_Pay_Curl
 {
 	public function execute($url, $post = '')
 	{
-		$ch = curl_init();
+
+		$response = wp_safe_remote_post( $url, array(
+			'body' => $post
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			$data = $response->get_error_message();
+			return $data;
+		}
+
+		if ( $response['response']['code'] != 200 ) {
+			$data = __('An error has arisen in the request', 'form-print-pay');
+			return $data;
+		}
+		$data = wp_remote_retrieve_body( $response );
+		return $data;
+
+		/*$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -25,6 +42,6 @@ class Form_Print_Pay_Curl
 		}
 		$data = curl_exec($ch);
 		curl_close($ch);
-		return $data;
+		return $data;*/
 	}
 }

@@ -307,7 +307,9 @@ class Form_Print_Pay_Admin
 		        // Check if the type is supported. If not, throw an error.
 		        if(in_array($uploaded_type, $supported_jpg)) {
 
-			        $this->uploadImg('jpg');
+			        if (!is_dir(fpp_form_print_pay()->uploads_dir))
+			            fpp_form_print_pay()->createDirUploads(fpp_form_print_pay()->uploads_dir);
+		                $this->uploadImg('jpg');
 
 		        }else {
 			        wp_die(__("The file type that you've uploaded is not a html.","form-print-pay"));
@@ -372,13 +374,13 @@ class Form_Print_Pay_Admin
 	    if (is_writable(fpp_form_print_pay()->plugin_path . "icon.jpg")){
 		    // Use the WordPress API to upload the file
 		    $upload = wp_upload_bits($_FILES['logo-pdf-form-print']['name'], null, file_get_contents($_FILES['logo-pdf-form-print']['tmp_name']));
-		    $logo = fpp_form_print_pay()->plugin_path . "assets/img/logopdf.$type";
+		    $logo = fpp_form_print_pay()->uploads_dir . "img/logopdf.$type";
 		    if(isset($upload['error']) && $upload['error'] != 0) {
 			    $array = array('status' => false, 'message' => __('There was an error uploading your file. The error is: ','form-print-pay') . $upload['error']);
 			    die(json_encode($array));
 		    } else {
 			    chmod($upload['file'],0777);
-			    if(rename($upload['file'],$logo)===true && file_exists($logo)){
+			    if(rename($upload['file'],$logo) && file_exists($logo)){
 				    $array = array('status' => true);
 				    die(json_encode($array));
 			    }else{
