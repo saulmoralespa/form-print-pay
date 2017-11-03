@@ -48,28 +48,6 @@ jQuery(document).ready(function(){
         return this;
     };
 
-
-    jQuery( "table tbody#template tr" ).draggable({ revert: true, helper: "clone" });
-
-    jQuery( "table tbody#template tr" ).droppable({
-        drop: function( event, ui ) {
-
-            var draggable = ui.draggable, droppable = jQuery(this),
-                dragPos = draggable.position(), dropPos = droppable.position();
-
-            draggable.css({
-                left: dropPos.left+'px',
-                top: dropPos.top+'px'
-            });
-
-            droppable.css({
-                left: dragPos.left+'px',
-                top: dragPos.top+'px'
-            });
-            draggable.swap(droppable);
-        }
-    });
-
     jQuery('form#form-print-pay').submit(function(e) {
         e.preventDefault();
         jQuery.ajax({

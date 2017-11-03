@@ -228,7 +228,7 @@ class Form_Print_Pay_Admin
 
 	public function head_menu()
     {
-        wp_enqueue_style('css-ui-form-print','//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css', null);
+        wp_enqueue_style('css-ui-form-print','https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css', null);
 	    wp_enqueue_style('css-form-print-pay-admin',$this->plugin_url."assets/css/form-print-pay.css", array(), $this->version, null);
     }
 
@@ -236,7 +236,6 @@ class Form_Print_Pay_Admin
 	{
 
 	    wp_enqueue_script('admin-config-form-print-pay', $this->plugin_url."assets/js/config.js", array('jquery'), $this->version, true);
-		wp_enqueue_script('jquery-ui-form-print','https://code.jquery.com/ui/1.12.1/jquery-ui.js', array('jquery'), $this->version, true);
 		if ( 'fpp_form_print_pay' == get_post_type() ){
 		    $meta_custom = get_post_meta(get_the_ID(),'fpp_form_print_pay_meta',true);
 		    if (count($meta_custom) == 5){
