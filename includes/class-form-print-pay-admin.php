@@ -251,7 +251,7 @@ class Form_Print_Pay_Admin
 	    if($_POST['field_name']){
 		    $names_fpp_form_print_pay = array();
 			foreach ($_POST['field_name'] as $key => $value){
-				$names_fpp_form_print_pay[$key] = $value . '_print';
+				$names_fpp_form_print_pay[$key] = sanitize_text_field($value) . '_print';
 			}
 		}
 		if (isset($_POST['text_x_user'])){
@@ -271,18 +271,18 @@ class Form_Print_Pay_Admin
 
 		if (isset($names_fpp_form_print_pay)){
 			$array = array('field_name' => $names_fpp_form_print_pay, 'text_user' => $text_user, 'type_user' => $type_user, 'default_value' => $default_value);
-			update_post_meta($_POST['idpost'], 'fpp_form_print_pay_meta', $array);
-			$meta_custom = get_post_meta($_POST['idpost'], 'fpp_form_print_pay_meta', true);
+			update_post_meta(sanitize_text_field($_POST['idpost']), 'fpp_form_print_pay_meta', $array);
+			$meta_custom = get_post_meta(sanitize_text_field($_POST['idpost']), 'fpp_form_print_pay_meta', true);
 			$meta_custom = $meta_custom['field_name'];
-			$array_merge = array_merge( array( 'fielname' => $meta_custom), array( 'id' => $_POST['idpost']));
+			$array_merge = array_merge( array( 'fielname' => $meta_custom), array( 'id' => sanitize_text_field($_POST['idpost'])));
 			echo json_encode($array_merge);
 		}
 
 		if (isset($_POST['text_form_print_pdf'])){
 
-			$meta_custom = get_post_meta($_POST['idpost'], 'fpp_form_print_pay_meta', true);
-			$array_merge = array_merge($meta_custom, array('text_pdf' => $_POST['text_form_print_pdf']));
-			update_post_meta($_POST['idpost'], 'fpp_form_print_pay_meta',$array_merge);
+			$meta_custom = get_post_meta(sanitize_text_field($_POST['idpost']), 'fpp_form_print_pay_meta', true);
+			$array_merge = array_merge($meta_custom, array('text_pdf' => sanitize_text_field($_POST['text_form_print_pdf'])));
+			update_post_meta(sanitize_text_field($_POST['idpost']), 'fpp_form_print_pay_meta',$array_merge);
 		}
 		if (isset($_POST['usersuject'])){
 		    unset($_POST['action']);
@@ -324,13 +324,13 @@ class Form_Print_Pay_Admin
 		if (isset($_POST['form_print'])){
 		    unset($_POST['form_print']);
 		    unset($_POST['action']);
-		    $price = $_POST['price_print'];
-			$description = $_POST['description_print'];
-			$email = $_POST['email_print'];
-		    $urlform = $_POST['url_form'];
+		    $price = sanitize_text_field($_POST['price_print']);
+			$description = sanitize_text_field($_POST['description_print']);
+			$email = sanitize_text_field($_POST['email_print']);
+		    $urlform = sanitize_text_field($_POST['url_form']);
 		    unset($_POST['url_form']);
 
-		    $uniquid = $_POST['uniquid_form_print'];
+		    $uniquid = sanitize_key($_POST['uniquid_form_print']);
 		    unset($_POST['uniquid_form_print']);
 		    $idpost = explode('_',$uniquid);
 		    $idpost = $idpost[0];
