@@ -16,7 +16,6 @@ class Form_Print_Pay_Admin_Config
 	public function content()
     {
 
-
         $events = get_posts( array ( 'post_type' => 'fpp_form_print_pay' ) );
 
         if ( isset($events) ) {

@@ -28,7 +28,7 @@ jQuery(document).ready(function(){
                     if(obj.status){
                         window.location.reload(true);
                     }else{
-                        alert('No se ha podido enviar el email');
+                        alert('Orden sin completar porque no se pudo enviar email');
                     }
                 },
                 error: function(x, s, e) {
@@ -117,7 +117,6 @@ jQuery(document).ready(function(){
             url: ajaxurl,
             beforeSend : function(){
                 jQuery('div.overlay-form-print-pay').show();
-                console.log('Enviando datos');
             },
             success: function(r) {
                 jQuery('div.overlay-form-print-pay').hide();
@@ -203,7 +202,7 @@ jQuery(document).ready(function(){
             jQuery('input[name=adminemail]').focus();
             return;
         }else if(count > 3){
-            alert('Con tres que coloques más que suficiente, no abuses dele spam.');
+            alert('Con tres que coloques más que suficiente, no abuses del spam.');
             return;
         }
 

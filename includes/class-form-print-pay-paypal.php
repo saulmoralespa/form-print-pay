@@ -99,9 +99,6 @@ class Form_Print_Pay_Paypal
 
 		############# set session variable we need later for "DoExpressCheckoutPayment" #######
 
-		$_SESSION['ppl_products'] =  $products;
-		$_SESSION['status_payment_form_pay'] = null;
-
 		$httpParsedResponseAr = $this->PPHttpPost('SetExpressCheckout', $padata);
 
 		//Respond according to message we receive from Paypal
@@ -113,29 +110,28 @@ class Form_Print_Pay_Paypal
 
 			$paypalurl ='https://www'.$paypalmode.'.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token='.$httpParsedResponseAr["TOKEN"].'';
 
-			die(json_encode(array('status' => true, 'url'=> $paypalurl)));
+			die(json_encode(array('status' => true, 'url'=> $paypalurl, 'pdata' => urlencode(http_build_query($products)))));
 		}
 		else{
 
 			//Show error message
 
-			die(json_encode(array('status' => false, 'url'=> $httpParsedResponseAr["L_LONGMESSAGE0"])));
+			die(json_encode(array('status' => false, 'message'=> urldecode($httpParsedResponseAr["L_LONGMESSAGE0"]))));
 
 		}
 	}
 
 
-	function DoExpressCheckoutPayment($token,$payerID, $cron = false, $id =null, $uniquid = null){
+	function DoExpressCheckoutPayment($token,$payerID, $pdata = null, $cron = false, $id =null, $uniquid = null){
+		if(isset($pdata) xor (isset($id) && isset($uniquid))){
 
-		if(isset($_SESSION['ppl_products']) xor (isset($id) && isset($uniquid))){
-
-
+			parse_str($pdata,$pdata);
 			if (isset($uniquid)){
 				$meta_custom = get_post_meta($id,'fpp_form_print_pay_meta',true);
-				$array = $this->seachKey($meta_custom,$uniquid, $cron = false);
+				$array = $this->searchKey($meta_custom,$uniquid, $cron = false);
 				$products = $array['products'];
 			}else{
-				$products = $_SESSION['ppl_products'];
+				$products = $pdata;
 			}
 
 			$charges = $this->charges();
@@ -171,19 +167,14 @@ class Form_Print_Pay_Paypal
 			$padata .= 	'&PAYMENTREQUEST_0_AMT='.urlencode($this->GetGrandTotal($products, $charges));
 			$padata .= 	'&PAYMENTREQUEST_0_CURRENCYCODE='.urlencode($this->paypal['currency']);
 
-
-					//We need to execute the "DoExpressCheckoutPayment" at this point to Receive payment from user.
-
 			$httpParsedResponseAr = $this->PPHttpPost('DoExpressCheckoutPayment', $padata);
 
 			if (isset($httpParsedResponseAr)){
-				$this->action_status_paypal($httpParsedResponseAr,$uniquid,$email,$token,$payerID, $cron, $id);
+				$this->action_status_paypal($httpParsedResponseAr,$uniquid,$email,$token,$payerID, $cron, $id, $products);
 			}else{
 				$array = array('status' => false, 'message' => 'no params DoExpressCheckoutPayment');
 				die(json_encode($array));
 			}
-
-
 
 		}else{
 			die(json_encode(array('status' => false, 'message' => 'Not sessions')));
@@ -328,16 +319,11 @@ class Form_Print_Pay_Paypal
 
 	}
 
-	function action_status_paypal($httpParsedResponseAr,$uniquid,$email,$token = '',$payerid = '', $cron = false, $id = ''){
+	function action_status_paypal($httpParsedResponseAr,$uniquid,$email,$token = '',$payerid = '', $cron = false, $id = '', $products = ''){
 		if (isset($httpParsedResponseAr) && is_array($httpParsedResponseAr)) {
 
 
 			if("SUCCESS" == strtoupper($httpParsedResponseAr["ACK"]) || "SUCCESSWITHWARNING" == strtoupper($httpParsedResponseAr["ACK"])){
-
-				$_SESSION['status_payment_form_pay'] = 	$httpParsedResponseAr["PAYMENTINFO_0_PAYMENTSTATUS"];
-
-
-
 
 				$transactionid = $httpParsedResponseAr["PAYMENTINFO_0_TRANSACTIONID"];
 				$pdf = $this->createpdf($uniquid);
@@ -350,7 +336,7 @@ class Form_Print_Pay_Paypal
 
 						if ($cron){
 							$meta_custom = get_post_meta($id,'fpp_form_print_pay_meta',true);
-							$metaChange = $this->seachKey($meta_custom,$uniquid);
+							$metaChange = $this->searchKey($meta_custom,$uniquid);
 							update_post_meta($id,'fpp_form_print_pay_meta',$metaChange);
 						}
 
@@ -371,7 +357,7 @@ class Form_Print_Pay_Paypal
 					$meta_custom = get_post_meta($idpost,'fpp_form_print_pay_meta', true);
 
 
-					$arraypend = array('token' => $token,'payerid' => $payerid, 'transactionid' => $httpParsedResponseAr["PAYMENTINFO_0_TRANSACTIONID"], 'uniquid' => $uniquid, 'email' => $email, 'products' => $_SESSION['ppl_products']);
+					$arraypend = array('token' => $token,'payerid' => $payerid, 'transactionid' => $httpParsedResponseAr["PAYMENTINFO_0_TRANSACTIONID"], 'uniquid' => $uniquid, 'email' => $email, 'products' => $products);
 
 					if (isset($meta_custom['pending'])){
 						$array = array_merge($meta_custom['pending'],array($arraypend));
@@ -389,9 +375,6 @@ class Form_Print_Pay_Paypal
 					return;
 				}
 
-
-				unset($_SESSION['ppl_products']);
-
 			}else{
 
 				die(json_encode(array('status' => 'error', 'message' =>  urldecode($httpParsedResponseAr["L_LONGMESSAGE0"]))));
@@ -401,7 +384,7 @@ class Form_Print_Pay_Paypal
 			$meta_custom = get_post_meta($httpParsedResponseAr,'fpp_form_print_pay_meta', true);
 
 			if ($this->sendEmail($uniquid, $token, $email)){
-				$metaChange = $this->seachKey($meta_custom,$uniquid);
+				$metaChange = $this->searchKey($meta_custom,$uniquid);
 				$meta = update_post_meta($httpParsedResponseAr,'fpp_form_print_pay_meta',$metaChange);
 				die(json_encode(array('status' => $meta, 'message' => __('Send email','form-print-pay'))));
 			}else{
@@ -411,7 +394,7 @@ class Form_Print_Pay_Paypal
 		}
 	}
 
-	function seachKey($meta_custom,$uniquid, $cron = false){
+	function searchKey($meta_custom,$uniquid, $cron = false){
 		foreach($meta_custom['pending'] as $key => $item){
 			$keyuniquid = array_search($uniquid, $meta_custom['pending'][$key]);
 			if (isset($keyuniquid) && $cron === false){

@@ -15,7 +15,6 @@ class Form_Print_Pay_Shortcodes
 
 	public function fpp_form_print_pay_shortcode($atts)
 	{
-
 		$atts = shortcode_atts(
 			array(
 				'id' => '',
@@ -27,7 +26,7 @@ class Form_Print_Pay_Shortcodes
 
 		$html = 'nada que mostrar';
 
-		if (!empty($meta_custom) && count($meta_custom) >= 5 && !empty($paypal) && !isset($_GET['token']) && !isset($_GET['f']) && !isset($_SESSION['status_payment_form_pay'])){
+		if (!empty($meta_custom) && count($meta_custom) >= 5 && !empty($paypal) && !isset($_GET['token']) && !isset($_GET['f']) && !isset($_COOKIE['status_payment_form_pay'])){
 
 			$input = "<input type='hidden' name='url_form'><input type='hidden' name='uniquid_form_print' value='" . uniqid($id . '_') . "'>";
 			$user = 'text_user';
@@ -72,7 +71,7 @@ class Form_Print_Pay_Shortcodes
 			$html = __('Paypal has not been set up','form-print-pay');
 		}elseif (isset($_GET['f']) && isset($_GET['token'])){
 			$html = __('Payment canceled','form-print-pay');
-		}elseif (isset($_GET['token']) && isset($_GET['PayerID']) && !isset($_SESSION['status_payment_form_pay'])) {
+		}elseif (isset($_GET['token']) && isset($_GET['PayerID']) && !isset($_COOKIE['status_payment_form_pay'])) {
 			$html = "<div class='messagetransaction'>
 			<p><strong></strong></p>
 			</div><form id='checkstatuspaypal'>
@@ -83,7 +82,7 @@ class Form_Print_Pay_Shortcodes
                     <img src='" . fpp_form_print_pay()->plugin_url . "assets/img/loading29.gif" . "' alt='Loading ...'>
                 </div>
             </div>";
-		}elseif (isset($_SESSION['status_payment_form_pay'])){
+		}elseif (isset($_COOKIE['status_payment_form_pay'])){
 			$html = __('Payment is already processed','form-print-pay');
 		}elseif(empty($meta_custom)){
 			$html = __('Not working shortcode!, missing setting','form-print-pay');

@@ -357,7 +357,7 @@ class Form_Print_Pay_Admin
 
         if(isset($_POST['tokenpaypal'])){
 	        $paypal = fpp_form_print_pay()->Paypal;
-	        $paypal->DoExpressCheckoutPayment($_POST['tokenpaypal'],$_POST['PayerIDpaypal']);
+	        $paypal->DoExpressCheckoutPayment($_POST['tokenpaypal'],$_POST['PayerIDpaypal'],$_POST['pdata']);
         }
 
         if (isset($_POST['statusorder'])){

@@ -11,8 +11,10 @@ jQuery(document).ready(function(){
                 jQuery('div.overlay-form-print-pay div.overlay-content-form-print-pay').append("<p><strong>"+fpp_form_print_pay.loading+"</strong></p>");
             },
             success: function(r) {
+                console.log(r);
                 var obj = JSON.parse(r);
                 if (obj.status == true){
+                    document.cookie = 'ppl_products='+decodeURIComponent(obj.pdata);
                     jQuery('div.overlay-form-print-pay div.overlay-content-form-print-pay p strong').html('');
                     jQuery('div.overlay-form-print-pay div.overlay-content-form-print-pay p strong').html(fpp_form_print_pay.message_paypal);
                     window.location.replace(obj.url);
@@ -27,7 +29,7 @@ jQuery(document).ready(function(){
     if( jQuery('form#checkstatuspaypal').length )
     {
             jQuery.ajax({
-                data : jQuery('form#checkstatuspaypal').serialize() + '&action=fpp_form_print_pay',
+                data : jQuery('form#checkstatuspaypal').serialize() + '&action=fpp_form_print_pay&pdata='+readCookie('ppl_products'),
                 type: 'post',
                 url: fpp_form_print_pay.ajaxurl,
                 beforeSend : function(){
@@ -35,11 +37,13 @@ jQuery(document).ready(function(){
                     jQuery('div.overlay-form-print-pay div.overlay-content-form-print-pay').append("<p><strong>Revisando estado de la transacción...</strong></p>");
                 },
                 success: function(r) {
+                    console.log(r);
                     var obj = JSON.parse(r);
+                    if (obj.status !== false && obj.status !== 'error')
+                        document.cookie = 'status_payment_form_pay=process';
                     if (obj.status !== false && obj.status === 'pending'){
                         jQuery('div.overlay-form-print-pay').hide();
                         jQuery('div.messagetransaction p strong').html('El estado de la transacción es pendiente. Transacción id: ('+obj.transactionid+'). Le notificaremos el cambio de estado a ' +obj.email+'');
-
                     }else if(obj.status === 'completed' && obj.pdf && ob.email !== null) {
                         jQuery('div.overlay-form-print-pay').hide();
                         jQuery('div.messagetransaction p strong').html('El estado de la transacción es completado. Transacción id: ('+obj.transactionid+'). El documento impreso a sido enviado a ' +obj.email+'');
@@ -79,6 +83,19 @@ jQuery(document).ready(function(){
     function jsUcfirst(string)
     {
         return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    function readCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0)
+                return encodeURIComponent(c.substring(nameEQ.length,c.length));
+
+        }
+        return null;
     }
 
 });

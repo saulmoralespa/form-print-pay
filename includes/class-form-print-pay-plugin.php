@@ -192,7 +192,7 @@ class FPP_Form_Print_Pay_plugin
 						if (isset($pendiente['transactionid'])) {
 
 							$paypal = fpp_form_print_pay()->Paypal;
-							$paypal->DoExpressCheckoutPayment($pendiente['token'],$pendiente['payerid'],true,$event->ID,$pendiente['uniquid']);
+							$paypal->DoExpressCheckoutPayment($pendiente['token'],$pendiente['payerid'],null,true,$event->ID,$pendiente['uniquid']);
 						}
 					}
 				}else{

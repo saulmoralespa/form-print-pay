@@ -1,5 +1,4 @@
 <?php
-
 /*
 Plugin Name: Form print pay
 Description: Formulario personalizable con impresión y medio de pago paypal
@@ -20,9 +19,6 @@ if (!defined('FPP_FORM_PRINT_PAY_PLUGIN_VERSION')){
 add_action('init', 'fpp_form_print_pay_init', 0);
 function fpp_form_print_pay_init()
 {
-	if( ! session_id() ) {
-		session_start();
-	}
     load_plugin_textdomain( 'form-print-pay', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 	if(!requeriments_fpp_form_print_pay()){
 		return;
