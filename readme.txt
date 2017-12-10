@@ -1,8 +1,8 @@
 === Form print pay ===
 Contributors: saulmoralespa
 Tags: form, furmulario, custom, personalizado, shortocode, pdf, paypal, imprimir, generate, generar, name, email, text, texatara, select, hidden, tel, nombre, correo electrónico, texto, comentarios, seleccionable, oculto, teléfono
-Requires at least: 4.8.2
-Tested up to: 4.8.2
+Requires at least: 4.9.1
+Tested up to: 4.9.1
 Requires PHP: 5.6.0
 Stable tag: 1.0.0
 License: GPLv2 or later
